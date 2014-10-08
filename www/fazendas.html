@@ -1,0 +1,150 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+   <script type="text/javascript">
+        var resultfaz = {};
+        function pesquisar(nome){
+        
+         var q = "SELECT * FROM FAZENDA WHERE fazenda LIKE '%"+nome+"%' ORDER BY fazenda ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item' onClick='editar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).fazenda + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma fazenda cadastrada.<center></span>";
+                    }
+                });
+            });
+            /*if(nome == ''){
+                index();
+            } */
+           
+        };
+</script>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Fazendas</div>
+            <div class="right">
+                <ons-toolbar-button ng-click="myNavigator.pushPage('nova_fazenda.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+            </div>
+            </ons-toolbar>
+     <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar">
+            
+    <div id="results">
+        
+    </div>
+     <ul id="tableResults" class="list">
+ 
+    </ul>
+ 
+    <script type="text/javascript">
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql("SELECT id, fazenda FROM FAZENDA ORDER BY fazenda ASC", null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item'  onClick='editar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).fazenda + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma fazenda cadastrada.<center></span>"
+                    }
+                });
+            });
+            
+            function editar(id){
+                
+                if(id != null){
+                    var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                       t.executeSql("SELECT * FROM FAZENDA WHERE id=?", [id], function (t, data) {
+                           resultfaz = data.rows.item(0);
+                            //$('#fazenda').val(data.rows.item(0).fazenda);
+                            //$('#descricao_faz').val(data.rows.item(0).descricao);
+                            //$('#recebe').val(data.rows.item(0).id);
+                            //console.log(data);
+                            myNavigator.pushPage("editar_fazenda.html");
+                        });
+                    });
+                }
+            }
+            function deletar(id){
+               db.transaction(function(tx){
+                   tx.executeSql("DELETE FROM FAZENDA WHERE id=?", [id], app.slidingMenu.setMainPage('fazendas.html', {closeMenu: true}), handleErrors);
+              });
+            }
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+           
+    </script>
+    </ons-page>
+    <ons-template id="editar_fazenda.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Fazenda </div>
+             <div class="right">
+                <ons-toolbar-button id="btnEditFaz">Salvar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul style="margin-left: -40px;" >
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Fazenda" id="fazenda">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_faz" placeholder="Descrição">
+                </li>
+                <input type="hidden" id="recebe">
+                <br>
+                 
+            </ul>
+    
+    <script type="text/javascript">
+        $('#id_f').val(resultfaz.fazenda);
+                            $('#fazenda').val(resultfaz.fazenda);
+                            $('#descricao_faz').val(resultfaz.descricao);
+                            $('#recebe').val(resultfaz.id);
+                            
+        $('#btnEditFaz').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                id_f = $('#recebe').val();
+                fazenda = $('#fazenda').val();
+                desc = $('#descricao_faz').val();
+                
+                db.transaction(function (tx) {
+                    tx.executeSql('UPDATE FAZENDA SET fazenda = "'+fazenda+'", descricao = "'+desc+'" WHERE id=?', [id_f], app.slidingMenu.setMainPage('fazendas.html', {closeMenu: true}), null);
+                    
+                });
+            
+        });
+        
+    </script>
+    </ons-page>
+    </ons-template>
+</ons-navigator>
+

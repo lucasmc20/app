@@ -1,0 +1,227 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+   <script type="text/javascript">
+        var resultlocal = {};
+        function pesquisar(nome){
+        
+         var q = "SELECT * FROM LOCAL WHERE local LIKE '%"+nome+"%' ORDER BY local ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS LOCAL (id INTEGER PRIMARY KEY ASC, local TEXT, fazenda_id INT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item' onClick='editar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).local + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("locais");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum local cadastrado.<center></span>";
+                    }
+                });
+            });
+            /*if(nome == ''){
+                index();
+            } */
+           
+        };
+</script>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Locais</div>
+            <div class="right">
+                <ons-toolbar-button ng-click="myNavigator.pushPage('novo_local.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+            </div>
+            </ons-toolbar>
+       <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar">
+            
+    <div id="results">
+        
+    </div>
+     <ul id="locais" class="list">
+ 
+    </ul>
+ 
+    <script type="text/javascript">
+        
+         var q = "SELECT * FROM LOCAL ORDER BY local ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //.executeSql("TRUNCATE TABLE LOCAL", []);
+                t.executeSql("CREATE TABLE IF NOT EXISTS LOCAL (id INTEGER PRIMARY KEY ASC, local TEXT, fazenda_id INT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    console.log(data);
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item' onClick='editar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'  >" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).local + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    
+                    var el = document.getElementById("locais");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum local cadastrado.<center></span>"
+                    }
+                });
+            });
+            
+            function deletar(id){
+               db.transaction(function(tx){
+               tx.executeSql("DELETE FROM LOCAL WHERE id=?", [id], app.slidingMenu.setMainPage('locais.html', {closeMenu: true}), handleErrors);
+          });
+          }
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+        function editar(id){
+                console.log('id fora: '+ id);
+                if(id != null){
+                   
+                    console.log('id dentro: '+ id)
+                    console.log('input vazio: ' + $('#local').val());
+                    var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                        console.log('id dentro do transaction: '+ id)
+                       t.executeSql("SELECT * FROM LOCAL, FAZENDA WHERE FAZENDA.id = LOCAL.fazenda_id AND LOCAL.id=?", [id], function (t, data) {
+                             resultlocal = data.rows.item(0);
+                            
+                           /* $('#local').val(data.rows.item(0).local);
+                            $('#id_faz').val(data.rows.item(0).fazenda_id);
+                            $('#descricao_local').val(data.rows.item(0).descricao);
+                            $('#nome_faz').val(data.rows.item(0).fazenda);
+                            $('#recebe').val(data.rows.item(0).id);
+                            console.log(data.rows.item(0).id, data.rows.item(0).local, data.rows.item(0).fazenda);
+                            */
+                             myNavigator.pushPage("editar_local.html");
+                        });
+                    });
+                    if($('#recebe').val() != null){
+                        console.log('input vazio: ' + $('#local').val());
+                        myNavigator.pushPage("editar_local.html");
+                    }
+                }
+                
+            }
+           
+    </script>
+    </ons-page>
+    
+    <ons-template id="editar_local.html">
+    <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button >Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Local</div>
+            
+            <div class="right">
+            <ons-toolbar-button id="btnSalvar">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Local" id="local">
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_edit.html')">
+                    <input type='hidden' id="id_faz" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_faz" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_local" placeholder="Descrição">
+                </li>
+                <input type="hidden" id="recebe">
+            </ul>
+   
+    <script type="text/javascript">
+        $('#id_e').val(resultlocal.local);
+                            $('#local').val(resultlocal.local);
+                            $('#descricao_local').val(resultlocal.descricao);
+                            $('#id_faz').val(resultlocal.id_faz);
+                            $('#nome_faz').val(resultlocal.fazenda);
+                            $('#recebe').val(resultlocal.id);
+                            
+        $('#btnSalvar').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var local = $('#local').val();
+                var fazenda_id = $('#id_faz').val();
+                var id_e = $('#recebe').val();
+                var descricao_local = $('#descricao_local').val();
+                 
+                db.transaction(function (tx) {
+                    //tx.executeSql("CREATE TABLE IF NOT EXISTS LOCAL (id INTEGER PRIMARY KEY ASC, local TEXT, fazenda_id INTEGER, descricao TEXT)", []);
+                    tx.executeSql('UPDATE LOCAL SET local = "'+local+'", fazenda_id = '+fazenda_id+', descricao = "'+descricao_local+'" WHERE id=?', [id_e], app.slidingMenu.setMainPage('locais.html', {closeMenu: true}), null);
+                    
+                });
+            
+        });
+    </script>
+    </ons-page>
+    </ons-template>
+    <ons-template id="select_edit.html">
+        <ons-page >
+            <ons-toolbar>
+            <div class="center">Fazendas</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM FAZENDA ORDER BY fazenda ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).fazenda;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).fazenda+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).fazenda+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma fazenda cadastrada. Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage('editar_local.html');
+                $('#id_faz').val(id);
+                $('#nome_faz').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+  </ons-navigator>
+

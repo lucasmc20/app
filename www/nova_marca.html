@@ -1,0 +1,45 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Nova Marca</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvarMarc">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Marca" id="marca">
+                </li>
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Proprietário" id="proprietario">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_marca" placeholder="Descrição">
+                </li>
+                
+            </ul>
+           
+    <script type="text/javascript">
+        
+        $('#btnSalvarMarc').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var marca = $('#marca').val();
+                var proprietario = $('#proprietario').val();
+                var descricao_marca = $('#descricao_marca').val();
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS MARCA (id INTEGER PRIMARY KEY ASC, marca TEXT, proprietario TEXT, descricao TEXT)", []);
+                    tx.executeSql('INSERT INTO MARCA (marca, proprietario, descricao) VALUES ("'+marca+'", "'+proprietario+'", "'+descricao_marca+'")', null, app.slidingMenu.setMainPage('marcas.html', {closeMenu: true}), null);
+                   
+                });
+            
+        })
+        
+    </script>
+    </div>
+  </ons-navigator>

@@ -1,0 +1,41 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('fazendas.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Nova Fazenda</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvar">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Nome da Fazenda" id="fazenda">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_faz" placeholder="Descrição">
+                </li>
+                <br>
+               
+            </ul>
+    <script type="text/javascript">
+        
+        $('#btnSalvar').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var fazenda = $('#fazenda').val();
+                var descricao_faz = $('#descricao_faz').val();
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                    tx.executeSql('INSERT INTO FAZENDA (fazenda, descricao) VALUES ("'+fazenda+'", "'+descricao_faz+'")', null, app.slidingMenu.setMainPage('fazendas.html', {closeMenu: true}), null);
+                    
+                });
+            
+        })
+        
+    </script>
+    </ons-page>
+  </ons-navigator>

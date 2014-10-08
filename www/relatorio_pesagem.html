@@ -1,0 +1,43 @@
+<ons-page>
+        <script type="text/javascript">
+        function pesquisar(nome){
+         var q = "SELECT * FROM ANIMAL WHERE animal LIKE '"+nome+"' ORDER BY animal ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS ANIMAL (id INTEGER PRIMARY KEY ASC, animal TEXT, categoria_id TEXT, lote_id TEXT, local_id TEXT, marca_id TEXT, matriz TEXT, touro TEXT, data TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    console.log(data.rows.item);
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item'> <span class='list__item__line-height'  onClick='editar(" + data.rows.item(i).id + ");'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).animal + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("results");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum animal cadastrado.<center></span>"
+                    }
+                });
+            });
+            console.log('func', nome);
+        };
+</script>
+    <ons-toolbar>
+        <div class="left">
+            <ons-toolbar-button ng-click="app.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+        </div>
+        <div class="center">Relatório Pesagem</div>
+    </ons-toolbar>
+
+    <div style="text-align: center">
+          <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar">
+    </div>
+    <div id="results">
+        
+    </div>
+
+</ons-page>

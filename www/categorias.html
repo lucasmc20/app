@@ -1,0 +1,193 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+    <script type="text/javascript">
+        var resulca = {};
+        function pesquisar(nome){
+        
+         var q = "SELECT * FROM CATEGORIAS WHERE categoria LIKE '%"+nome+"%' ORDER BY categoria ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS CATEGORIAS (id INTEGER PRIMARY KEY ASC, categoria TEXT, descricao TEXT, sexo TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item'> <span class='list__item__line-height'  onClick='editar(" + data.rows.item(i).id + ");'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).categoria + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma categoria cadastrada.<center></span>";
+                    }
+                });
+            });
+            /*if(nome == ''){
+                index();
+            } */
+           
+        };
+</script>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Categorias</div>
+            <div class="right">
+               <ons-toolbar-button ng-click="myNavigator.pushPage('nova_categoria.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+            </div>
+            </ons-toolbar>
+
+  <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar">
+            
+    <div id="results">
+        
+    </div>
+     <ul id="tableResults" class="list">
+ 
+    </ul>
+ 
+    <script type="text/javascript">
+         //function index(){
+         
+         var q = "SELECT * FROM CATEGORIAS ORDER BY categoria ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS CATEGORIAS (id INTEGER PRIMARY KEY ASC, categoria TEXT, descricao TEXT, sexo TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item' onClick='editar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).categoria + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma categoria cadastrada.<center></span>"
+                    }
+                });
+            });
+         /*}
+         index(); */
+            function deletar(id){
+               db.transaction(function(tx){
+                   tx.executeSql("DELETE FROM CATEGORIAS WHERE id=?", [id], app.slidingMenu.setMainPage('categorias.html', {closeMenu: true}), handleErrors);
+              });
+          }
+         
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+        function editar(id){
+                
+                if(id != null){
+                    var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                       t.executeSql("SELECT * FROM CATEGORIAS WHERE id=?", [id], function (t, data) {
+                           resulca = data.rows.item(0);
+                           /*$('#categoria').val(data.rows.item(0).categoria);
+                            $('#descricao_cat').val(data.rows.item(0).descricao);
+                            $('input:radio[name=r]').each(function(){
+                                console.log('name');
+                                if($(this).val() == data.rows.item(0).sexo){
+                                    $(this).attr("checked",true);
+                                    console.log('1');
+                                }
+                                if($(this).val() != data.rows.item(0).sexo){
+                                    $(this).attr("checked",false);
+                                    console.log('2');
+                                }
+                            });
+                            */
+                           
+                           // $('#recebe').val(data.rows.item(0).id);
+                             myNavigator.pushPage("editar_categoria.html");
+                        });
+                    });
+                }
+            }
+           
+    </script>
+    </ons-page>
+    <ons-template id="editar_categoria.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Categoria </div>
+             <div class="right">
+                <ons-toolbar-button id="btnEditCat">Salvar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul style="margin-left: -40px;" >
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Categoria" id="categoria">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_cat" placeholder="Descrição">
+                </li>
+                <input type="hidden" id="recebe">
+                <li>
+                    <label class="radio-button">
+                      <input type="radio" name="r" id="sexo" value="0">
+                      <div class="radio-button__checkmark"></div>
+                      M
+                    </label>
+                
+                    <label class="radio-button">
+                      <input type="radio" name="r" id="sexo" value="1" >
+                      <div class="radio-button__checkmark"></div>
+                      F
+                    </label>
+                </li>
+            </ul>
+    
+    <script type="text/javascript">
+                            $('#id_c').val(resulca.categoria);
+                            $('#categoria').val(resulca.categoria);
+                            $('#descricao_cat').val(resulca.descricao);
+                            $('input:radio[name=r]').each(function(){
+                                console.log('name');
+                                if($(this).val() == resulca.sexo){
+                                    $(this).attr("checked",true);
+                                   // console.log('1');
+                                }
+                                if($(this).val() != resulca.sexo){
+                                    $(this).attr("checked",false);
+                                    //console.log('2');
+                                }
+                            });
+                            $('#recebe').val(resulca.id);
+                          //  console.log(resulca.descricao); //NÃ OTA VINDO OS VALORES DE DESCRICAO E SEXO
+    
+        $('#btnEditCat').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                id_c = $('#recebe').val();
+                categoria = $('#categoria').val();
+                desc = $('#descricao_cat').val();
+                sexo = $("#sexo:checked").val();
+                console.log(sexo);
+                
+                db.transaction(function (tx) {
+                    
+                    tx.executeSql('UPDATE CATEGORIAS SET categoria = "'+categoria+'", descricao = "'+desc+'", sexo = "'+sexo+'" WHERE id=?', [id_c], app.slidingMenu.setMainPage('categorias.html', {closeMenu: true}), null);
+                    
+                });
+            
+        });
+        
+    </script>
+    </ons-page>
+</ons-navigator>
+

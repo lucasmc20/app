@@ -1,0 +1,17 @@
+{
+    "plugins": [
+        "org.apache.cordova.statusbar",
+        "mobi.monaca.plugins.datepicker",
+        "org.apache.cordova.splashscreen"
+    ],
+    "framework_version": "3.5",
+    "title-ja": "",
+    "title-en": "",
+    "description-ja": "",
+    "description-en": "",
+    "category": "User Template",
+    "platform": [
+        "ios"
+    ],
+    "name": "generated-1412734352-541882d27e2193fb58ecfae5"
+}

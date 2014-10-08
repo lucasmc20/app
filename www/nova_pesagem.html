@@ -1,0 +1,187 @@
+<ons-navigator title="Navigator" var="myNavigator" >
+   <ons-page>
+        <ons-toolbar>
+             <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('pesagens.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Nova Pesagem</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvarPesag">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul class='list'>
+                <li class="list__item">
+                   <div class="list__left-label">Data: <input type="datetime-local" class="text-input" id="data" placeholder="00/00/0000" maxlength="10" style="margin-top:5px;"/></div>
+                </li>
+            </ul>
+            <ul id="novo" class='list'>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_animal.html')">
+                    <input type='hidden' id="id_animal" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="ID do Animal" id="num_animal" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Peso(kg)" id="pesokg" maxlength="10" onkeyup="mascara(this, mvalor);">
+                </li>
+                 
+            </ul>
+             <div class="right" style="float:right; margin-bottom:-5px;">
+                <ons-toolbar-button id="addnovo"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+              </div>
+              <br><br>
+            <ul class='list'>
+                <li class="list__item" >
+                    <span >ID Animal</span> 
+                    <span style="float:right;margin-right:5%;">Peso</span>
+                </li>
+            </ul>
+      <ul class="list" id="listapeso" width="100%">
+        
+                
+        </ul>
+           
+    <script type="text/javascript">
+        function mascara(o,f){
+            v_obj=o
+            v_fun=f
+            setTimeout("execmascara()",1)
+        }
+        function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+        }
+        function mdata(v){
+            v=v.replace(/\D/g,"");                    //Remove tudo o que não é dígito
+            v=v.replace(/(\d{2})(\d)/,"$1/$2");
+            v=v.replace(/(\d{2})(\d)/,"$1/$2");
+         
+            v=v.replace(/(\d{2})(\d{2})$/,"$1$2");
+            return v;
+        }
+        function mvalor(v){
+            v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            //v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            v=v.replace(/(\d)(\d{6})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            v=v.replace(/(\d)(\d{3})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            return v;
+        }
+        var i = 0;
+        $('#addnovo').click(function(){
+            if($('#pesokg').val() == '' || ($('#id_animal').val() == '' ||  $('#num_animal').val() == '')  || $('#data').val() == ''){
+                alert("Preencha todos os campos!");
+            }
+            else{
+               
+                console.log($('#pesokg').val());
+            
+                i++;
+                var html =  '<li id="list_peso'+i+'" class="list__item"><span width="60%" style="font-size: 16px;" >'+
+                    '<input type="hidden" id="id'+i+'" value="'+$('#id_animal').val()+'">' +$('#num_animal').val()+
+                '</span>'+
+                '<span style="float:right; font-size: 16px;" >'+
+                    '<input type="hidden" id="peso'+i+'" value="'+$('#pesokg').val()+'">' + $('#pesokg').val() +" kg"+
+                '</span></li>';
+                $('#listapeso').append(html);
+                $('#pesokg').val('');
+                $('#id_animal').val('');
+                $('#num_animal').val('');
+            }
+            
+        });
+        $('#btnSalvarPesag').click(function(){
+            
+            var tamanho = $('#listapeso li').length;
+            var d = $('#data').val();
+            d=d.replace('T', ' ');
+            console.log(d);
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS DATA (id INTEGER PRIMARY KEY ASC, data TEXT)", []);
+                    tx.executeSql("SELECT id FROM DATA WHERE data LIKE '%"+d+"%'",null, function (t, res) {
+                        if(res.rows.length < 1){
+                            tx.executeSql('INSERT INTO DATA (data) VALUES ("'+d+'")', null);
+                        }
+                        else{
+                            tx.executeSql("CREATE TABLE IF NOT EXISTS PESAGEM (id INTEGER PRIMARY KEY ASC, peso TEXT, id_animal INTEGER, data_id INTEGER)", []);
+                            tx.executeSql("SELECT id FROM DATA WHERE data LIKE '%"+d+"%'", null, function (t, res) {
+                            for(var j = 1; j <= tamanho; j++){
+                                peso = $('#peso'+j).val();
+                                peso = peso.replace('.', '');
+                                peso = peso.replace(',', '.');
+                                id_animal = $('#id'+j).val();
+                                console.log(peso);
+                                tx.executeSql('INSERT INTO PESAGEM (peso, id_animal, data_id) VALUES ("'+peso+'", "'+id_animal+'", "'+res.rows.item(0).id+'")', null, app.slidingMenu.setMainPage('pesagens.html', {closeMenu: true}), null);
+                            }
+                           
+                        });
+                        }
+                    });
+                });
+        });
+        
+    </script>
+    </ons-page>
+     <ons-template id="select_animal.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Animais</div>
+            </ons-toolbar>
+            
+            <!--<ul class="list list-top" id="rec">
+            </ul> -->
+        <script type="text/javascript">
+        function pesquisar(nome){
+           // var q = "SELECT * FROM ANIMAIS ORDER BY animal ASC";
+            var q = "SELECT * FROM ANIMAIS WHERE animal LIKE '%"+nome+"%' ORDER BY animal ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                
+                t.executeSql(q, null, function (t, data) {
+                    var html = ''; 
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).animal;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).animal+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).animal+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    
+                });
+            });
+        }
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_animal').val(id);
+                $('#num_animal').val(nome);
+                
+            }
+        
+          </script>
+          <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);"  maxlength='10' placeholder="Pesquisar id">
+       <div id="rec">
+        
+    </div>
+     <ul id="rec" class="list">
+ 
+    </ul>
+       </ons-page>
+    </ons-template>
+  </ons-navigator>

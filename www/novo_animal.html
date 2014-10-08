@@ -1,0 +1,272 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('animais.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Novo animal</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvarMarc">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                     <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="id_animal" placeholder="ID Animal(Fazenda)">
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_categoria.html')">
+                    <input type='hidden' id="id_categoria" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione categoria" id="nome_categoria">
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_lote.html')">
+                    <input type='hidden' id="id_lote" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione lote" id="nome_lote" >
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_local.html')">
+                    <input type='hidden' id="id_local" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione local" id="nome_local" >
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_marca.html')">
+                    <input type='hidden' id="id_marca" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione marca" id="nome_marca" >
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                
+        
+                
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="matriz" placeholder="Matriz">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="touro" placeholder="Touro">
+                </li>
+            </ul>
+           
+    <script type="text/javascript">
+        
+        $('#btnSalvarMarc').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var animal = $('#id_animal').val();
+                var categoria = $('#id_categoria').val();
+                var lote = $('#id_lote').val();
+                var local = $('#id_local').val();
+                var marca = $('#id_marca').val();
+                var matriz = $('#matriz').val();
+                var touro = $('#touro').val();
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS ANIMAIS (id INTEGER PRIMARY KEY ASC, animal TEXT, categoria_id TEXT, lote_id TEXT, local_id TEXT, marca_id TEXT, matriz TEXT, touro TEXT)", []);
+                    tx.executeSql('INSERT INTO ANIMAIS (animal, categoria_id, lote_id, local_id, marca_id,  matriz, touro) VALUES ("'+animal+'", "'+categoria+'", "'+lote+'", "'+local+'", "'+marca+'", "'+matriz+'", "'+touro+'")', null, app.slidingMenu.setMainPage('animais.html', {closeMenu: true}), null);
+                   
+                });
+            
+        })
+        
+    </script>
+    </ons-page>
+    <!-- select categoria-->
+    <ons-template id="select_categoria.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Categorias</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="lista_categorias">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM CATEGORIAS ORDER BY categoria ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+data.rows.item(i).categoria+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).categoria+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).categoria+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("lista_categorias");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma categoria cadastrada. <br> Acesse o menu e cadastre!<center></span>"
+                    }
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_categoria').val(id);
+                $('#nome_categoria').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <!-- select lote-->
+    <ons-template id="select_lote.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Lotes</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="lista_lotes">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM LOTE ORDER BY lote ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+data.rows.item(i).lote+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).lote+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).lote+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("lista_lotes");
+                    
+                    el.innerHTML = html;
+                   if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum lote cadastrado. <br> Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_lote').val(id);
+                $('#nome_lote').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <!-- select local-->
+    <ons-template id="select_local.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Lotes</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="lista_locais">
+            </ul>
+        <script type="text/javascript">
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                
+                t.executeSql("SELECT * FROM LOCAL, FAZENDA WHERE FAZENDA.id = LOCAL.fazenda_id", null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+data.rows.item(i).local+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).local+"  -  "+data.rows.item(i).fazenda+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("lista_locais");
+                    
+                    el.innerHTML = html;
+                   if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum local cadastrado. <br> Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_local').val(id);
+                $('#nome_local').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <!-- select marcas-->
+    <ons-template id="select_marca.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Marcas</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="lista_marcas">
+            </ul>
+        <script type="text/javascript">
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+               
+                t.executeSql("SELECT * FROM MARCA ", null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+data.rows.item(i).marca+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).marca+"  -  "+data.rows.item(i).proprietario+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("lista_marcas");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma marca cadastrada. <br> Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_marca').val(id);
+                $('#nome_marca').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+   
+  </ons-navigator>

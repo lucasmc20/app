@@ -1,0 +1,98 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('locais.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Novo Local</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvar">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Local" id="local">
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select.html')">
+                    <input type='hidden' id="id_faz" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_faz" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_local" placeholder="Descrição">
+                </li>
+                
+            </ul>
+            
+    <script type="text/javascript">
+        $('#btnSalvar').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var local = $('#local').val();
+                var fazenda_id = $('#id_faz').val();
+                var descricao_local = $('#descricao_local').val();
+                 
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS LOCAL (id INTEGER PRIMARY KEY ASC, local TEXT, fazenda_id INTEGER, descricao TEXT)", []);
+                    tx.executeSql('INSERT INTO LOCAL (local, fazenda_id, descricao) VALUES ("'+local+'", '+fazenda_id+', "'+descricao_local+'")', null, app.slidingMenu.setMainPage('locais.html', {closeMenu: true}), null);
+                     
+                });
+            
+        });
+        
+        
+    </script>
+    </ons-page>
+    <ons-template id="select.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Fazendas</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM FAZENDA ORDER BY fazenda ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).fazenda;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).fazenda+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).fazenda+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                   
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_faz').val(id);
+                $('#nome_faz').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+  </ons-navigator>

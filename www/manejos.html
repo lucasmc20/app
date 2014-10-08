@@ -1,0 +1,25 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Manejos</div>
+            </ons-toolbar>
+      <!--
+        <li class="list__item" ng-click="myNavigator.pushPage('pesagens.html')">
+        <span class="list__item__line-height"  >Pesagem</span>
+        </li>
+    -->
+    <ul class="list">
+    <ons-list-item
+            modifier="tappable" class="list__item list__item--chevron"
+            onclick="myNavigator.pushPage('pesagens.html')">
+            <!--<i class="fa fa-leaf fa-lg" style="color: #666"></i>-->
+            &nbsp; Pesagens
+        </ons-list-item>
+        </ul>
+    </ons-page>
+    </ons-template>
+</ons-navigator>
+

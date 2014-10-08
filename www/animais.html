@@ -1,0 +1,626 @@
+<script>
+var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+  db.transaction(function(tx) {
+   tx.executeSql("SELECT COUNT(id) AS total FROM ANIMAIS;", [],
+      function(tx, result) {
+        console.log(result.rows.item(0).total);
+         var total = document.getElementById("contador");
+                    total.innerHTML = result.rows.item(0).total;
+         // do the html stuff to push this value to div
+      },
+      function(tx, error){
+         // error occured
+      }
+   );
+});
+</script>
+
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Animais (<span id="contador"></span>) </div>
+            <div class="right">
+        <ons-toolbar-button ng-click="myNavigator.pushPage('novo_animal.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+      </div>
+            </ons-toolbar>
+
+     <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar animal">
+    
+     <ul id="animal" class="list">
+ 
+    </ul>
+ 
+    <script type="text/javascript">
+ var resul = {};
+ var resulver = {};
+ var resulpes = {};
+         function pesquisar(nome){
+         var q = "SELECT * FROM ANIMAIS WHERE animal LIKE '%"+nome+"%'  ORDER BY animal ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         var cor = "";
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS ANIMAIS (id INTEGER PRIMARY KEY ASC, animal TEXT, categoria_id TEXT, lote_id TEXT, local_id TEXT, marca_id TEXT, matriz TEXT, touro TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                        
+                          html += "<li class='list__item' onClick='edit(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).marca + "</td><td class='list__item'>" +
+                          data.rows.item(i).animal + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("animal");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum animal cadastrado.<center></span>"
+                    }
+                });
+            });
+         }
+         
+         var q = "SELECT * FROM ANIMAIS  ORDER BY animal ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         var cor = "";
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS ANIMAIS (id INTEGER PRIMARY KEY ASC, animal TEXT, categoria_id TEXT, lote_id TEXT, local_id TEXT, marca_id TEXT, matriz TEXT, touro TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                        //if(data.rows.item(i).sexo == 1){
+                          //  cor = "style='background: '"
+                        //}
+                          html += "<li class='list__item'  onClick='ver(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).marca + "</td><td class='list__item'>" +
+                          data.rows.item(i).animal + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("animal");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum animal cadastrado.<center></span>"
+                    }
+                });
+            });
+            function deletar(id){
+               db.transaction(function(tx){
+               tx.executeSql("DELETE FROM ANIMAIS WHERE id=?", [id], app.slidingMenu.setMainPage('animais.html', {closeMenu: true}), handleErrors);
+          });
+          }
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+        function ver(id){
+                
+                if(id != null){
+                    var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                      t.executeSql("SELECT ANIMAIS.id, ANIMAIS.animal AS animal, ANIMAIS.marca_id, ANIMAIS.categoria_id, ANIMAIS.lote_id, ANIMAIS.local_id, ANIMAIS.matriz, ANIMAIS.touro, CATEGORIAS.categoria, LOTE.lote, LOCAL.local, MARCA.marca FROM ANIMAIS, CATEGORIAS, LOTE, LOCAL, MARCA WHERE CATEGORIAS.id = ANIMAIS.categoria_id AND LOTE.id = ANIMAIS.lote_id AND LOCAL.id = ANIMAIS.local_id AND MARCA.id = ANIMAIS.marca_id AND ANIMAIS.id=?", [id], function (t, data) {
+                            resulver = data.rows.item(0);
+                            /*
+                            $('#id_a').val(data.rows.item(0).animal);
+                            $('#id_c').val(data.rows.item(0).categoria_id);
+                            $('#id_l').val(data.rows.item(0).lote_id);
+                            $('#nome_lote').val(data.rows.item(0).lote);
+                            $('#id_local').val(data.rows.item(0).local_id);
+                            $('#nome_local').val(data.rows.item(0).local);
+                            $('#id_marca').val(data.rows.item(0).marca_id);
+                            $('#nome_marca').val(data.rows.item(0).marca);
+                            $('#matr').val(data.rows.item(0).matriz);
+                            $('#tour').val(data.rows.item(0).touro);
+                            $('#nome_categoria').val(data.rows.item(0).categoria);
+                            $('#recebe').val(data.rows.item(0).id);
+                            */
+                            
+                            myNavigator.pushPage("ver_animal.html");
+                        });
+                    });
+                }
+            } 
+            
+           
+    </script>
+    </ons-page>
+    
+      <ons-template id="ver_animal.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center"> Animal </div>
+             <div class="right">
+                <ons-toolbar-button onClick='edit()' >Editar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul  class="list" >
+                <li class="list__item">
+                    <div >ID Animal: <input class="text-input text-input--transparent" style=" margin-top:4px;" placeholder="ID do animal" id="id_a" disabled></div>
+                </li>
+                 <li class="list__item " >
+                    <input type='hidden' id="id_cat" />
+                    <div >Categoria: <input class="text-input text-input--transparent" style="margin-top:4px;"  id="nome_categoria" disabled></div>
+                </li>
+                <li class="list__item" >
+                    <input type='hidden' id="id_lot" />
+                    <div >Lote:  <input class="text-input text-input--transparent" style="margin-top:4px;" placeholder="Selecione" id="nome_lote" disabled></div>
+                    
+                </li>
+                 <li class="list__item" >
+                    <input type='hidden' id="id_loca" />
+                    
+                    <div >Local: <input class="text-input text-input--transparent" style="margin-top:4px;" placeholder="Selecione" id="nome_local" disabled></div>
+                </li>
+                 <li class="list__item " >
+                    <input type='hidden' id="id_marc" />
+                    
+                        <div >Marca: <input class="text-input text-input--transparent" style=" margin-top:4px;" placeholder="Selecione" id="nome_marca" disabled></div>
+                       
+                    
+                </li>
+                <li class="list__item list__item--tappable" onClick="pesagem();">
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Pesagens" id="pesagens"  disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item">
+                    ID Matriz: <input type="text" class="text-input text-input--transparent" style="margin-top:4px;" id="matr" placeholder="ID Matriz" disabled>
+                </li>
+                <li class="list__item">
+                    ID Touro: <input type="text" class="text-input text-input--transparent" style="margin-top:4px;" id="tour" placeholder="ID Touro" disabled>
+                </li>
+                
+            </ul><input type="hidden" id="recebe">
+                
+    
+    <script type="text/javascript">
+     $('#id_a').val(resulver.animal);
+                            $('#id_c').val(resulver.categoria_id);
+                            $('#id_l').val(resulver.lote_id);
+                            $('#nome_lote').val(resulver.lote);
+                            $('#id_local').val(resulver.local_id);
+                            $('#nome_local').val(resulver.local);
+                            $('#id_marca').val(resulver.marca_id);
+                            $('#nome_marca').val(resulver.marca);
+                            $('#matr').val(resulver.matriz);
+                            $('#tour').val(resulver.touro);
+                            $('#nome_categoria').val(resulver.categoria);
+                            $('#recebe').val(resulver.id);
+                            
+                            /*
+                            
+                            $('#id_a').val(data.rows.item(0).animal);
+                            $('#id_c').val(data.rows.item(0).categoria_id);
+                            $('#id_l').val(data.rows.item(0).lote_id);
+                            $('#nome_lote').val(data.rows.item(0).lote);
+                            $('#id_local').val(data.rows.item(0).local_id);
+                            $('#nome_local').val(data.rows.item(0).local);
+                            $('#id_marca').val(data.rows.item(0).marca_id);
+                            $('#nome_marca').val(data.rows.item(0).marca);
+                            $('#matr').val(data.rows.item(0).matriz);
+                            $('#tour').val(data.rows.item(0).touro);
+                            $('#nome_categoria').val(data.rows.item(0).categoria);
+                            $('#recebe').val(data.rows.item(0).id);
+                            */
+    function edit(){
+            id = document.getElementById("recebe").value;
+               if(id != null){
+                   
+                    console.log(id);
+                    //console.log($('#id_a').val());
+                    $('#id_animal').val($('#id_a').val());
+                    var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                       t.executeSql("SELECT ANIMAIS.id, ANIMAIS.animal, ANIMAIS.marca_id, ANIMAIS.categoria_id, ANIMAIS.lote_id, ANIMAIS.local_id, ANIMAIS.matriz, ANIMAIS.touro, CATEGORIAS.categoria, LOTE.lote, LOCAL.local, MARCA.marca FROM ANIMAIS, CATEGORIAS, LOTE, LOCAL, MARCA WHERE CATEGORIAS.id = ANIMAIS.categoria_id AND LOTE.id = ANIMAIS.lote_id AND LOCAL.id = ANIMAIS.local_id AND MARCA.id = ANIMAIS.marca_id AND ANIMAIS.id=? ", [id], function (t, data) {
+                            resul = data.rows.item(0);
+                            //$('#id_a').val(data.rows.item(0).animal);
+                            //$('#id_cat').val(data.rows.item(0).categoria_id);
+                            //$('#id_lot').val(data.rows.item(0).lote_id);
+                            //$('#nome_lot').val(data.rows.item(0).lote);
+                            //$('#id_loca').val(data.rows.item(0).local_id);
+                            //$('#nome_loca').val(data.rows.item(0).local);
+                            //$('#id_marc').val(data.rows.item(0).marca_id);
+                            //$('#nome_marc').val(data.rows.item(0).marca);
+                            //$('#matriz').val(data.rows.item(0).matriz);
+                            //$('#touro').val(data.rows.item(0).touro);
+                            //$('#nome_cat').val(data.rows.item(0).categoria);
+                            //$('#recebe').val(data.rows.item(0).id);
+                            //console.log(data.rows.item(0).id, data.rows.item(0).local, data.rows.item(0).fazenda);
+                           
+                          myNavigator.pushPage("edit_animal.html");
+                            
+                        });
+                    });
+                   
+                   
+                }
+                
+            }
+        function pesagem(){
+           
+            id = document.getElementById("recebe").value;
+            console.log(id);
+            if(id != null){
+                 var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                    $('#id_ani').attr('value', id);
+                     myNavigator.pushPage("select_pesagens.html");
+                });
+                
+            }
+        }
+        
+    </script>
+    </ons-page>
+    </ons-template>
+    
+    <ons-template id="edit_animal.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Animal </div>
+             <div class="right">
+                <ons-toolbar-button id="btnEditMarc">Salvar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul style="margin-left: -40px;" >
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="ID do animal" id="id_animal">
+                </li>
+                 <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_edit.html')">
+                    <input type='hidden' id="id_cat" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_cat" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_edit_lote.html')">
+                    <input type='hidden' id="id_lot" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_lot" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                 <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_edit_locais.html')">
+                    <input type='hidden' id="id_loca" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_loca" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                 <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_edit_marcas.html')">
+                    <input type='hidden' id="id_marc" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="Selecione" id="nome_marc" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="matriz" placeholder="ID Matriz">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="touro" placeholder="ID Touro">
+                </li>
+                <input type="hidden" id="recebe">
+                <br>
+                 
+            </ul>
+    
+    <script type="text/javascript">
+        $('#id_animal').val(resul.animal);
+                            $('#id_cat').val(resul.categoria_id);
+                            $('#id_lot').val(resul.lote_id);
+                            $('#nome_lot').val(resul.lote);
+                            $('#id_loca').val(resul.local_id);
+                            $('#nome_loca').val(resul.local);
+                            $('#id_marc').val(resul.marca_id);
+                            $('#nome_marc').val(resul.marca);
+                            $('#matriz').val(resul.matriz);
+                            $('#touro').val(resul.touro);
+                            $('#nome_cat').val(resul.categoria);
+                            $('#recebe').val(resul.id);
+        
+        $('#btnEditMarc').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                id_c = $('#recebe').val();
+                animal = $('#id_animal').val();
+                categoria = $('#id_cat').val();
+                lote = $('#id_lot').val();
+                local = $('#id_loca').val();
+                marca = $('#id_marc').val();
+                matriz = $('#matriz').val();
+                touro = $('#touro').val();
+                db.transaction(function (tx) {
+                    tx.executeSql('UPDATE ANIMAIS SET animal = "'+animal+'", categoria_id = "'+categoria+'", lote_id = "'+lote+'", local_id = "'+local+'", marca_id = "'+marca+'", matriz = "'+matriz+'", touro = "'+touro+'" WHERE id=?', [id_c], app.slidingMenu.setMainPage('animais.html', {closeMenu: true}), null); 
+                });
+        });
+        
+    </script>
+    </ons-page>
+    </ons-template>
+    <ons-template id="select_edit.html">
+        <ons-page >
+            <ons-toolbar>
+            <div class="center">Categorias</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM CATEGORIAS ORDER BY categoria ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).categoria;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).categoria+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).categoria+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma categoria cadastrada. Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage('edit_animal.html');
+                $('#id_cat').val(id);
+                $('#nome_cat').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <ons-template id="select_edit_lote.html">
+        <ons-page >
+            <ons-toolbar>
+            <div class="center">Lotes</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM LOTE ORDER BY lote ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).lote;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).lote+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).lote+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum lote cadastrado. Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage('edit_animal.html');
+                $('#recebe').val(id);
+                $('#nome_lot').val(nome);
+                
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <ons-template id="select_edit_locais.html">
+        <ons-page >
+            <ons-toolbar>
+            <div class="center">Locais</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM LOCAL ORDER BY local ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).local;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).local+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).local+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum local cadastrado. Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage('edit_animal.html');
+                $('#id_loca').val(id);
+                $('#nome_loca').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <ons-template id="select_edit_marcas.html">
+        <ons-page >
+            <ons-toolbar>
+            <div class="center">Marcas</div>
+            </ons-toolbar>
+            
+            <ul class="list list-top" id="rec">
+            </ul>
+        <script type="text/javascript">
+            var q = "SELECT * FROM MARCA ORDER BY marca ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS FAZENDA (id INTEGER PRIMARY KEY ASC, fazenda TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = '';
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).marca;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).marca+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).marca+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma marca cadastrada. Acesse o menu e cadastre!<center></span>"
+                    }
+                    
+                });
+            });
+            function envia(id, nome){
+                myNavigator.popPage('edit_animal.html');
+                $('#id_marc').val(id);
+                $('#nome_marc').val(nome);
+                
+            }
+          </script>
+        </ons-page>
+    </ons-template>
+    <ons-template id="select_pesagens.html">
+        <ons-page >
+            <ons-toolbar>
+                <div class="left">
+                    <ons-back-button>Voltar</ons-back-button>
+                </div>
+                <div class="center">Pesagens</div>
+            </ons-toolbar>
+            <input type="hidden" id="id_ani" name="id_anim">
+            <ul class="list" id="page">
+            </ul>
+        <script type="text/javascript">
+            id = $('#recebe').val();
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            console.log(id);
+            db.transaction(function (tx) {
+                tx.executeSql("SELECT ANIMAIS.animal, PESAGEM.id, PESAGEM.peso, ANIMAIS.id, LOCAL.local, CATEGORIAS.categoria, LOTE.lote, DATA.data FROM PESAGEM, ANIMAIS, LOCAL, LOTE, CATEGORIAS, DATA WHERE PESAGEM.id_animal = ANIMAIS.id AND DATA.id = PESAGEM.data_id AND LOTE.id = ANIMAIS.lote_id AND LOCAL.id = ANIMAIS.local_id AND CATEGORIAS.id = ANIMAIS.categoria_id  AND PESAGEM.id_animal=? ORDER BY DATA.data ASC", [id], function (t, data) {
+                     var total=0;
+                    var html3 = "<li class='list__item'>" + 
+                                    "ID Animal = "+data.rows.item(0).animal+ "<br/>"+
+                                    "Categoria = " +data.rows.item(0).categoria+"<br/>"+
+                                    "Lote = "+data.rows.item(0).lote+"<br/>"+
+                                    "Local = "+data.rows.item(0).local+"<br/>"+
+                                "</li>"+
+                                "<li class='list__item'> "+
+                                    "<span >Peso GPD(kg) = <span id='total'></span>"+ 
+                                    "</span>"+
+                                "</li>" +
+                                '<li class="list__item" >'+
+                                    '<span >Data</span>'+ 
+                                    '<span style="float:right;margin-right:5%;">Peso</span>'+
+                                '</li>';
+                    for (var i = 0; i < data.rows.length; i++) {
+                       
+                        
+                        var gpd;
+                        
+                        if(i>0) {
+                            var date1 = new Date(data.rows.item(i).data);
+                        var date2 = new Date(data.rows.item(i-1).data);
+                        var timeDiff = Math.abs(date2.getTime() - date1.getTime());
+                        var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)); 
+                        gpd = (data.rows.item(i).peso-data.rows.item(i-1).peso)/(diffDays);
+                        
+                       total += gpd;
+                       
+                        }
+                        
+                        dat = data.rows.item(i).data.split('-');
+                        //dat = dat[2]+'/'+dat[1]+'/'+dat[0];
+                        hora = dat[2].split(' ');
+                        dat = hora[0] +'/'+dat[1]+'/'+dat[0]+' '+hora[1];
+                        //console.log(data.rows.item(i).animal);
+                        //console.log(data.rows.item(i).peso);
+                        p = data.rows.item(i).peso;
+                          html3 += '<li class="list__item " >'+
+                                    "<span class='list-item-action'>"+dat+"</span><span style='float:right;'>"+data.rows.item(i).peso+"kg </span>"+
+                            "</li>";
+                           
+                    }
+                    
+                    var imprime = document.getElementById("page");
+                    
+                    imprime.innerHTML = html3;
+                    
+                    if(data.rows.length <= 0){
+                       imprime.innerHTML = "<li class='list__item'><span class='list__item__line-height'><center>Nenhuma pesagem cadastrada. Acesse o menu e cadastre!<center></span></li>";
+                    }
+                    if(total!=null){
+                        console.log(total);
+                        var totalgpd = document.getElementById("total");
+                    console.log(totalgpd);
+                    totalgpd.innerHTML = parseFloat(total/(data.rows.length-1)).toFixed(3);
+                    }
+                    
+                });
+            });
+            
+          </script>
+        </ons-page>
+    </ons-template>
+    
+</ons-navigator>
+

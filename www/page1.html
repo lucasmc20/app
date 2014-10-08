@@ -1,0 +1,156 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+   <script type="text/javascript">
+        var resultlote = {};
+        function pesquisar(nome){
+        
+         var q = "SELECT * FROM LOTE WHERE lote LIKE '%"+nome+"%' ORDER BY lote ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS LOTE(id INTEGER PRIMARY KEY ASC, lote TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item'> <span class='list__item__line-height'  onClick='editar(" + data.rows.item(i).id + ");'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).lote + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum lote cadastrado.<center></span>";
+                    }
+                });
+            });
+            /*if(nome == ''){
+                index();
+            } */
+           
+        };
+</script>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Lotes</div>
+            <div class="right">
+                <ons-toolbar-button ng-click="myNavigator.pushPage('novo_lote.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+            </div>
+            </ons-toolbar>
+ <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);" placeholder="Pesquisar">
+            
+    <div id="results">
+        
+    </div>
+     <ul id="tableResults" class="list">
+ 
+    </ul>
+ 
+    <script type="text/javascript">
+    
+            var q = "SELECT * FROM LOTE ORDER BY lote ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS LOTE(id INTEGER PRIMARY KEY ASC, lote TEXT, descricao TEXT)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                   
+                    for (var i = 0; i < data.rows.length; i++) {
+                          html += "<li class='list__item' onclick='editar("+data.rows.item(i).id+");'> <span class='list__item__line-height'>" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          data.rows.item(i).lote + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("tableResults");
+                    el.innerHTML = html;
+                    
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhum lote cadastrado.<center></span>"
+                    }
+                });
+            });
+    
+          function editar(id){
+               
+               
+                if(id != null){
+                    //var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                    db.transaction(function (t) {
+                       t.executeSql("SELECT * FROM LOTE WHERE id=?", [id], function (t, data) {
+                           resultlote = data.rows.item(0);
+                          /*  $('#lote').val(data.rows.item(0).lote);
+                            $('#descricao').val(data.rows.item(0).descricao);
+                            $('#recebe').val(data.rows.item(0).id);
+                            console.log(data);
+                            */
+                            myNavigator.pushPage("editar_lote1.html");
+                        });
+                    });
+                }
+                
+          }
+          function deletar(id){
+               db.transaction(function(tx){
+               tx.executeSql("DELETE FROM LOTE WHERE id=?", [id], app.slidingMenu.setMainPage('page1.html', {closeMenu: true}), handleErrors);
+          });
+          }
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+           
+    </script>
+    </ons-page>
+    </ons-navigator>
+    <ons-template id="editar_lote1.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Lote </div>
+             <div class="right">
+                <ons-toolbar-button id="btnSalvarEdit">Salvar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul style="margin-left: -40px;" >
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Lote" id="lote">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao" placeholder="Descrição">
+                </li>
+                <input type="hidden" id="recebe">
+                <br>
+                 
+            </ul>
+    
+    <script type="text/javascript">
+        $('#id_e').val(resultlote.lote);
+                            $('#lote').val(resultlote.lote);
+                            $('#descricao').val(resultlote.descricao);
+                            $('#recebe').val(resultlote.id);
+                            
+        $('#btnSalvarEdit').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                id_e = $('#recebe').val();
+                lote = $('#lote').val();
+                descricao = $('#descricao').val();
+                
+                db.transaction(function (tx) {
+                     tx.executeSql('UPDATE LOTE SET lote = "'+lote+'", descricao = "'+descricao+'" WHERE id=?', [id_e], app.slidingMenu.setMainPage('page1.html', {closeMenu: true}), null);
+                   
+                });
+            
+        });
+        
+    </script>
+    </ons-page>
+</ons-template>

@@ -1,0 +1,43 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('page1.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Novo Lote</div>
+            
+            <div class="right">
+                <ons-toolbar-button id="btnSalvar">Salvar</ons-toolbar-button>
+            </div>
+            
+            </ons-toolbar>
+            
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Lote" id="lote">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao" placeholder="Descrição">
+                </li>
+                <br>
+            
+            </ul>
+    
+    <script type="text/javascript">
+        
+        $('#btnSalvar').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                lote = $('#lote').val();
+                descricao = $('#descricao').val();
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS LOTE(id INTEGER PRIMARY KEY ASC, lote TEXT, descricao TEXT)", []);
+                    tx.executeSql('INSERT INTO LOTE (lote, descricao) VALUES ("'+lote+'", "'+descricao+'")', null, app.slidingMenu.setMainPage('page1.html', {closeMenu: true}), null);
+                    
+                });
+            
+        });
+        
+    </script>
+    </div>
+  </ons-navigator>

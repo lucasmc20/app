@@ -1,0 +1,56 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button ng-click="app.slidingMenu.setMainPage('categorias.html', {animation: 'slide'})">Voltar</ons-back-button>
+            </div>
+            <div class="center">Nova Categoria</div>
+            <div class="right">
+                <ons-toolbar-button id="btnSalvarCat">Salvar</ons-toolbar-button>
+            </div>
+            </ons-toolbar>
+            
+            <ul style="margin-left: -40px;">
+                <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Categoria" id="categoria">
+                </li>
+                <li class="list__item">
+                    <input type="text" class="text-input text-input--transparent" style="width:100%; margin-top:4px;" id="descricao_cat" placeholder="Descrição">
+                </li>
+                <li>
+                  <label class="radio-button">
+                    <input type="radio" name="r" id="sexo" value="0" checked>
+                    <div class="radio-button__checkmark"></div>
+                    Macho
+                    </label>
+                
+                    <label class="radio-button">
+                        <input type="radio" name="r" id="sexo" value="1">
+                        <div class="radio-button__checkmark"></div>
+                        Fêmea
+                    </label>
+                </li>
+
+          </ul>
+            
+    
+    <script type="text/javascript">
+        
+        $('#btnSalvarCat').click(function(){
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                var categoria = $('#categoria').val();
+                var descricao_cat = $('#descricao_cat').val();
+                var sexo = $("#sexo:checked").val();
+                
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS CATEGORIAS (id INTEGER PRIMARY KEY ASC, categoria TEXT, descricao TEXT, sexo TEXT)", []);
+                    tx.executeSql('INSERT INTO CATEGORIAS (categoria, descricao, sexo) VALUES ("'+categoria+'", "'+descricao_cat+'", "'+sexo+'")', null, app.slidingMenu.setMainPage('categorias.html', {closeMenu: true}), null);
+                    
+                });
+            
+        });
+        
+    </script>
+    </div>
+  </ons-navigator>

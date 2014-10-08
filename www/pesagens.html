@@ -1,0 +1,554 @@
+<ons-navigator title="Navigator" var="myNavigator">
+   <ons-page>
+   <script type="text/javascript">
+        var resultpes = {};
+        var editpes = {};
+        function pesquisar(data){
+        //console.log(data);
+        data = data.split('/');
+        
+        novadata = data[2] +'-'+data[1]+'-'+data[0];
+        //console.log('DATA: ',novadata);
+            
+         var q = "SELECT data FROM DATA WHERE data LIKE '%"+novadata+"%' ORDER BY data ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         db.transaction(function (t) {
+                t.executeSql("CREATE TABLE IF NOT EXISTS DATA (id INTEGER PRIMARY KEY ASC, data TEXT)", []);
+                t.executeSql("CREATE TABLE IF NOT EXISTS PESAGEM (id INTEGER PRIMARY KEY ASC, peso TEXT, id_animal INTEGER, data_id INTEGER)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                        //console.log('data banco: ', data.rows.item(0).data);
+                        dat = data.rows.item(i).data.split('-');
+                        hora = dat[2].split(' ');
+                        novadat = hora[0] +'/'+dat[1]+'/'+dat[0]+' '+hora[1];
+                        console.log('nova', hora[1]);
+                          html += "<li class='list__item' onClick='visualizar(" + data.rows.item(i).id + ");'> <span class='list__item__line-height'  >" + 
+                          //data.rows.item(i).id + "</td><td class='list__item'>" +
+                          novadat +  "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' style='float: left;' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("pesagens");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma pesagem cadastrada.<center></span>";
+                    }
+                });
+            });
+        }
+        
+</script>
+        <ons-toolbar>
+            <div class="left">
+                <ons-toolbar-button ng-click="ons.slidingMenu.toggleMenu()"><ons-icon icon="bars"></ons-icon></ons-toolbar-button>
+            </div>
+            <div class="center">Pesagens</div>
+            <div class="right">
+        <ons-toolbar-button ng-click="myNavigator.pushPage('nova_pesagem.html')"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+      </div>
+            </ons-toolbar>
+<input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);"  maxlength='10' placeholder="Pesquisar">            
+   <div id="results">
+        
+    </div>
+     <ul id="pesagens" class="list">
+ 
+    </ul>
+    
+ 
+    <script type="text/javascript">
+
+         var q = "SELECT * FROM DATA ORDER BY data ASC";
+         var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                //t.executeSql("CREATE TABLE IF NOT EXISTS DATA (id INTEGER PRIMARY KEY ASC, peso TEXT, id_animal TEXT, data_id INTEGER)", []);
+                t.executeSql(q, null, function (t, data) {
+                    var html = "";
+                    for (var i = 0; i < data.rows.length; i++) {
+                        dat = data.rows.item(i).data.split('-');
+                        hora = dat[2].split(' ');
+                        novadata = hora[0] +'/'+dat[1]+'/'+dat[0]+' '+hora[1];
+                          html += "<li class='list__item'> <span class='list__item__line-height'  onClick='visualizar(" + data.rows.item(i).id + ");'>" + 
+                          //data.rows.item(i).marca + "</td><td class='list__item'>" +
+                          novadata + "</span><span style='float:right;margin-top:8px;'> <button  id='deletar' class='button' onClick='deletar(" + data.rows.item(i).id + ");'> <i class='fa fa-trash-o'></i></button></span>"+//<td class='list__item'>" +
+                          //data.rows.item(i).descricao + "</td>
+                          "</li>";
+                    }
+                    var el = document.getElementById("pesagens");
+                    el.innerHTML = html;
+                    if(data.rows.length <= 0){
+                       el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma pesagem cadastrada.<center></span>"
+                    }
+                });
+            });
+            
+            function deletar(id){
+               db.transaction(function(tx){
+               tx.executeSql("DELETE FROM DATA WHERE id=?", [id], null, null);
+               tx.executeSql("DELETE FROM PESAGEM WHERE data_id=?", [id], app.slidingMenu.setMainPage('pesagens.html', {closeMenu: true}), null);
+               
+          });
+          }
+          function handleErrors(transaction, error) {
+            alert(error.message);
+            return true;
+        }
+        function visualizar(data_id){
+            
+           
+            if(data_id != null){
+               var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                $('#recebe_data2').val(data_id);
+                 myNavigator.pushPage("ver_pesagem.html");
+                db.transaction(function (tx) {
+                    var html = "";
+                    tx.executeSql('SELECT DATA.data, DATA.id, SUM(PESAGEM.peso) as totalPeso, MAX(PESAGEM.peso) as maior, MIN(PESAGEM.peso) as menor, COUNT(PESAGEM.id) as qtd FROM DATA, PESAGEM WHERE DATA.id = PESAGEM.data_id AND PESAGEM.data_id = ?', [data_id], function(e, d){
+                      
+                      dat = d.rows.item(0).data.split('-');
+                        hora = dat[2].split(' ');
+                        novadat = hora[0] +'/'+dat[1]+'/'+dat[0]+' '+hora[1];
+                        qtd = d.rows.item(0).qtd;
+                        
+                        total = parseFloat(d.rows.item(0).totalPeso/qtd).toFixed(3);
+                        total = total.replace('.', ",");
+                        var t = total.length;
+                        console.log(t);
+                        if(t > 7){
+                            total = total.substring(0, 1) +"."+total.substring(1);
+                        }
+                        maior = d.rows.item(0).maior;
+                        maior = maior.replace('.', ",");
+                        var m = maior.length;
+                        console.log(m);
+                        if(m > 7){
+                            maior = maior.substring(0, 1) +"."+maior.substring(1);
+                        }
+                        
+                        
+                        menor = d.rows.item(0).menor;
+                        menor = menor.replace('.', ",");
+                        var me = menor.length;
+                        console.log(m);
+                        if(me > 7){
+                            menor = menor.substring(0, 1) +"."+menor.substring(1);
+                        }
+                       
+                        
+                        $('#recebe_data2').val(d.rows.item(0).id);
+                        var html1 = "<li class='list__item'>" + 
+                                    "Data Pesagem = "+novadat+ "<br/>"+
+                                    "Quantidade = " +d.rows.item(0).qtd+"<br/>"+
+                                    "Média de Peso = "+total+"Kg<br/>"+
+                                    "Maior Peso = "+ maior +"Kg<br/>"+
+                                    "Menor Peso = "+ menor +"Kg<br/>"+
+                                "</li>";
+                   var el1 = document.getElementById("ver_pesos");
+                   el1.innerHTML = html1;
+                    tx.executeSql('SELECT PESAGEM.id, PESAGEM.data_id, PESAGEM.peso, PESAGEM.id_animal, ANIMAIS.animal, CATEGORIAS.categoria, ANIMAIS.categoria_id FROM PESAGEM, ANIMAIS, CATEGORIAS WHERE ANIMAIS.id = PESAGEM.id_animal AND ANIMAIS.categoria_id = CATEGORIAS.id AND PESAGEM.data_id  = ? ORDER BY PESAGEM.peso ASC', [data_id], function(r, dados){
+                       var html = ' <tr class="list__item" style="width:100%;"><td style="width:47%; float:left;">ID Animal - Categoria</td><td style="width:15%;float:right;"> Peso</td></tr> ';
+                        for (var i = 0; i < dados.rows.length; i++) {
+                            var pes = dados.rows.item(i).peso;
+                            pes = pes.replace('.', ",");
+                            var mv = pes.length;
+                            if(mv > 7){
+                                pes = pes.substring(0, 1) +"."+pes.substring(1);
+                            }
+                            
+                            html += 
+                                "<tr class='list__item' style='width:100%;'>"+ 
+                                    "<td style='width:47%;'> "+dados.rows.item(i).animal+" - "+dados.rows.item(i).categoria+" </td>"+
+                                    //"<td style='width:29%; float:center;'> "+dados.rows.item(i).categoria+"</td>"+
+                                    "<td style='width:15%;float:right;'>"+pes + "Kg</td>"+
+                              "</tr>";
+                        }
+                        var el2 = document.getElementById("ver_todos");
+                        el2.innerHTML = html;
+                        if(dados.rows.length <= 0){
+                           el.innerHTML = "<span class='list__item__line-height'><center>Nenhuma pesagem cadastrada.<center></span>"
+                        }
+                    });
+                    
+                    });
+                   
+                });
+                
+            }
+        }
+        
+        
+        function mascara(o,f){
+            v_obj=o
+            v_fun=f
+            setTimeout("execmascara()",1)
+        }
+        function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+        }
+        function mvalor(v){
+            v=v.replace(/\D/g,"");
+            v=v.replace(/(\d)(\d{6})$/,"$1.$2");
+            v=v.replace(/(\d)(\d{3})$/,"$1,$2");
+            return v;
+        }
+    </script>
+    </ons-page>
+    
+   <!-- AOAOAOAOAOAOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOAA VER PESAGEM OAAOAOAOAOOAOAOAOAOAOOAOAOAAOAOAOAOAAOAOAOAOOAOAOAOAOAOAOOAOAAOAOOAOAOA-->
+     <ons-template id="ver_pesagem.html" >
+     <ons-page id="ver">
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Pesagem </div>
+             <div class="right">
+                <ons-toolbar-button onClick='editar();'>Editar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            <input type="hidden" id="recebe_data2" >
+            <ul style="margin-left: -40px;" id="ver_pesos">
+                
+                
+            </ul>
+        <table id="ver_todos" style="width:100%;" class="list">
+               
+           
+        </table>
+    <script type="text/javascript">
+    /////////////////////////////////////////////////////////////////////////////////////////////////////
+        function editar(){
+            id = $("#recebe_data2").val();
+            if(id != null){
+                
+                console.log('id dentro: ', id);
+                var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+                db.transaction(function (t) {
+                  t.executeSql("SELECT ANIMAIS.animal AS idp, PESAGEM.peso, PESAGEM.id_animal, DATA.data, PESAGEM.data_id, PESAGEM.id FROM PESAGEM, DATA, ANIMAIS WHERE DATA.id = PESAGEM.data_id AND ANIMAIS.id= PESAGEM.id_animal AND PESAGEM.data_id=?", [id], function (t, data) {
+                      console.log(id);
+                      
+                      dat = data.rows.item(0).data.split('-');
+                      console.log(dat);
+                        hora = dat[2].split(' ');
+                        novadat = hora[0] +'/'+dat[1]+'/'+dat[0]+' '+hora[1];
+                        setTimeout(function() {
+                              
+                        
+                        $('#data_edit').val(novadat);
+                        $('#recebe_p').val(editpes.id);
+                        $('#id_datat').val(editpes.data_id);
+                        
+                        var html = "";
+                        for(var i = 0; i < data.rows.length; i++){
+                            var pesagm = data.rows.item(i).peso;
+                            pesagm = pesagm.replace('.', ",");
+                            var mv = pesagm.length;
+                            if(mv > 7){
+                                pesagm = pesagm.substring(0, 1) +"."+pesagm.substring(1);
+                            }
+                            
+                            html =  '<li id="list_peso'+i+'" class="list__item"><span width="60%" style="font-size: 16px;float: left;">'+
+                                '<input type="hidden" id="id'+i+'" value="'+data.rows.item(i).id_animal+'">' +data.rows.item(i).idp+
+                            '</span>'+
+                            '<span style="float: left; font-size: 16px;margin-left: 130px;">'+
+                                '<input type="hidden" id="peso'+i+'" value="'+pesagm+'">' + pesagm +" kg"+
+                            '</span>'+
+                            "<span style='float:right;margin-top:8px;'> <button  id='remove' style='float:right;' onClick='excluir("+i+");' class='button'> <i class='fa fa-trash-o'></i></button></span>"+
+                            '<input type="hidden" id="id_pesa'+i+'" value="'+data.rows.item(i).id+'">'+
+                            '</li>';
+                            
+                        $('#listapeso').append(html);
+                        }
+                        }, 100);
+                        myNavigator.pushPage("editar_pesagem.html");
+        function mascara(o,f){
+            v_obj=o
+            v_fun=f
+            setTimeout("execmascara()",1)
+        }
+        function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+        }
+        function mvalor(v){
+            v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            //v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            v=v.replace(/(\d)(\d{6})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            v=v.replace(/(\d)(\d{3})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            return v;
+        }
+                  });
+                });
+                
+            }
+        } 
+         $('#btnSalvarPesag').click(function(){
+            
+            var tamanho = $('#listapeso li').length;
+            var d = $('#data').val();
+            d=d.replace('T', ' ');
+            //console.log(d);
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+                db.transaction(function (tx) {
+                    tx.executeSql("CREATE TABLE IF NOT EXISTS DATA (id INTEGER PRIMARY KEY ASC, data TEXT)", []);
+                    tx.executeSql("SELECT id FROM DATA WHERE data LIKE '%"+d+"%'",null, function (t, res) {
+                        if(res.rows.length < 1){
+                            tx.executeSql('INSERT INTO DATA (data) VALUES ("'+d+'")', null);
+                            tx.executeSql("CREATE TABLE IF NOT EXISTS PESAGEM (id INTEGER PRIMARY KEY ASC, peso TEXT, id_animal INTEGER, data_id INTEGER)", []);
+                            tx.executeSql("SELECT id FROM DATA WHERE data LIKE '%"+d+"%'", null, function (t, res) {
+                                for(var j = 1; j <= tamanho; j++){
+                                    peso = $('#peso'+j).val();
+                                    peso = peso.replace('.', '');
+                                    peso = peso.replace(',', '.');
+                                    id_animal = $('#id'+j).val();
+                                    console.log(peso);
+                                    tx.executeSql('INSERT INTO PESAGEM (peso, id_animal, data_id) VALUES ("'+peso+'", "'+id_animal+'", "'+res.rows.item(0).id+'")', null, app.slidingMenu.setMainPage('pesagens.html', {closeMenu: true}), null);
+                                }
+                               
+                            });
+                        }
+                        else{
+                            tx.executeSql("CREATE TABLE IF NOT EXISTS PESAGEM (id INTEGER PRIMARY KEY ASC, peso TEXT, id_animal INTEGER, data_id INTEGER)", []);
+                            tx.executeSql("SELECT id FROM DATA WHERE data LIKE '%"+d+"%'", null, function (t, res) {
+                            for(var j = 1; j <= tamanho; j++){
+                                peso = $('#peso'+j).val();
+                                peso = peso.replace('.', '');
+                                peso = peso.replace(',', '.');
+                                id_animal = $('#id'+j).val();
+                                console.log(peso);
+                                tx.executeSql('INSERT INTO PESAGEM (peso, id_animal, data_id) VALUES ("'+peso+'", "'+id_animal+'", "'+res.rows.item(0).id+'")', null, app.slidingMenu.setMainPage('pesagens.html', {closeMenu: true}), null);
+                            }
+                           
+                        });
+                        }
+                    });
+                });
+        });
+        
+    </script>
+    </ons-page>
+    </ons-template>
+    <!-- AOAOAOAOAOAOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOAA EDITAR PESAGEM OAAOAOAOAOOAOAOAOAOAOOAOAOAAOAOAOAOAAOAOAOAOOAOAOAOAOAOAOOAOAAOAOOAOAOA-->
+     <ons-template id="editar_pesagem.html">
+     <ons-page >
+        <ons-toolbar>
+            <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Editar Pesagem </div>
+             <div class="right">
+                <ons-toolbar-button id="btnEditPesag">Salvar</ons-toolbar-button>
+            </div>
+        </ons-toolbar>
+            
+            <ul style="margin-left: -40px;" >
+            <li class="list__item">
+                   Data: <input type="text" class="text-input" id="data_edit" placeholder="00/00/0000 00:00" />
+                   <input type='hidden' id="id_datat" />
+                </li>
+                <li class="list__item list__item--tappable" ng-click="myNavigator.pushPage('select_animal.html')">
+                    <input type='hidden' id="id_animal" />
+                    <span  class='list-item-action' >
+                        <input class="text-input text-input--transparent" style="width:85%; margin-top:4px; float: left;" placeholder="ID do Animal" id="num_animal" disabled>
+                        <span class="list-item-action" style="width='15%'; margin-top:12px; float: right;">
+                            <i class="fa fa-angle-right"></i>
+                        </span>
+                    </span>
+                    
+                </li>
+            <li class="list__item">
+                    <input class="text-input text-input--transparent" style="width:100%; margin-top:4px;" placeholder="Peso(kg)" id="peso_edit"  maxlength="10"  onkeyup="mascara(this, mvalor);">
+                </li>
+                
+                <input type="hidden" id="recebe_p">
+                <br>
+                 
+            </ul>
+             <div class="right" style="float:right; margin-bottom:-5px;">
+                <ons-toolbar-button id="addnovo"><ons-icon icon="fa fa-plus"></ons-icon></ons-toolbar-button>
+              </div>
+              <br><br>
+            <ul class='list'>
+                <li class="list__item" >
+                    <span >ID Animal</span> 
+                    <span style="float:right;margin-right:5%;">Peso</span>
+                </li>
+            </ul>
+      <ul class="list" id="listapeso" width="100%">
+        
+                
+     </ul>
+     
+    
+    <script type="text/javascript">
+    
+        $('#addnovo').click(function(){
+                if($('#peso_edit').val() == '' || ($('#id_animal').val() == '' ||  $('#num_animal').val() == '')  || $('#data_edit').val() == ''){
+                    alert("Preencha todos os campos!");
+                }
+                else{                
+                    var i = $('#listapeso li').length;
+                    var pesagm = $('#peso_edit').val();
+                    //pesagm = pesagm.substring(0, 1) +""+pesagm.substring(1);
+                    //pesagm = pesagm.replace(',', ".");
+                    peso = pesagm;
+                    peso = peso.replace('.', '');
+                    peso = peso.replace(',', '.');
+                     id_animal = $('#id_animal').val();
+                    console.log(pesagm);
+                    var iddata = $('#id_datat').val();
+                    var html =  '<li id="list_peso'+i+'" class="list__item"><span width="60%" style="font-size: 16px;float: left;" >'+
+                        '<input type="hidden" id="id'+i+'" value="'+$('#id_animal').val()+'">' +$('#num_animal').val()+
+                    '</span>'+
+                    '<span style="float: left; font-size: 16px;margin-left: 130px;" >'+
+                        '<input type="hidden" id="peso'+i+'" value="'+$('#peso_edit').val()+'">' + $('#peso_edit').val() +" kg"+
+                    '</span>'+
+                    "<span style='float:right;margin-top:8px;'> <button  id='remove' style='float: left;' onClick='excluir(" +i+ ");' class='button'> <i class='fa fa-trash-o'></i></button></span>";
+                    
+                   
+                   
+                    db.transaction(function (tx) {
+                        tx.executeSql('INSERT INTO PESAGEM (peso, id_animal, data_id) VALUES ("'+peso+'", "'+id_animal+'", "'+iddata+'")', null);
+                        tx.executeSql('SELECT id FROM PESAGEM WHERE peso = "'+peso+'" AND id_animal = "'+id_animal+'" AND data_id = "'+iddata+'"', null, function(s, data){
+                            if(data.rows.length >= 1){
+                                html += '<input type="hidden" id="id_pesa'+i+'" value="'+data.rows.item(0).id+'"></li>';
+                                $('#listapeso').append(html);
+                            }
+                            
+                           
+                        });
+                    });
+                    $('#peso_edit').val('');
+                    $('#id_animal').val('');
+                    $('#num_animal').val('');
+                    
+                }   
+            
+        });
+    
+     function excluir(id){
+       // $('#list_peso'+id).remove();
+       db.transaction(function(tx){
+           var excluirid = $('#id_pesa'+id).val();
+              // tx.executeSql("DELETE FROM DATA WHERE id=?", [id], null, null);
+               tx.executeSql("DELETE FROM PESAGEM WHERE PESAGEM.id=?", [excluirid]);
+               $('#list_peso'+id).remove();
+          });
+     }
+       
+        $('#btnEditPesag').click(function(){
+            var tamanho = $('#listapeso li').length;
+            
+            var d = $('#data_edit').val();
+            dat = d.split('/');
+            hora = dat[2].split(' ');
+            novadat = hora[0] +'-'+dat[1]+'-'+dat[0]+' '+hora[1];
+            
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+            
+            
+            peso = $('#peso').val();
+            id_animal = $('#id_animal').val();
+            id_datat = $('#id_datat').val();
+            
+            db.transaction(function (tx) {
+                tx.executeSql("CREATE TABLE IF NOT EXISTS DATA (id INTEGER PRIMARY KEY ASC, data TEXT)", []);
+                tx.executeSql('UPDATE DATA SET data= "'+novadat+'" WHERE DATA.id = ?', [id_datat]);
+                    
+                tx.executeSql("SELECT id FROM DATA WHERE id = ?", [id_datat], function (t, res) {
+                    for(var j = 0; j < tamanho; j++){
+                        id_pe = $('#id_pesa'+j).val();
+                        peso = $('#peso'+j).val();
+                        peso = peso.replace('.', '');
+                        peso = peso.replace(',', '.');
+                        console.log('posefsd',peso);
+                        id_animal = $('#id'+j).val();
+                        console.log('gfdgae',id_animal);
+                        console.log('id data: ', res.rows.item(0).id);
+                    tx.executeSql('UPDATE PESAGEM SET peso = "'+peso+'", data_id = "'+res.rows.item(0).id+'", id_animal = "'+id_animal+'" WHERE PESAGEM.id=?', [id_pe], app.slidingMenu.setMainPage('pesagens.html', {closeMenu: true}), null);
+                    
+                    console.log(id_pe);
+                    }
+            });
+            
+        });
+        });
+        function mascara(o,f){
+            v_obj=o
+            v_fun=f
+            setTimeout("execmascara()",1)
+        }
+        function execmascara(){
+            v_obj.value=v_fun(v_obj.value)
+        }
+        function mvalor(v){
+            v=v.replace(/\D/g,"");//Remove tudo o que não é dígito
+            //v=v.replace(/(\d)(\d{8})$/,"$1.$2");//coloca o ponto dos milhões
+            v=v.replace(/(\d)(\d{6})$/,"$1.$2");//coloca o ponto dos milhares
+         
+            v=v.replace(/(\d)(\d{3})$/,"$1,$2");//coloca a virgula antes dos 2 últimos dígitos
+            return v;
+        }
+    </script>
+    </ons-page>
+    </ons-template>
+    <!-- AOAOAOAOAOAOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOOAOAOAOAOAOAOAOAA SELECT ANIMAL OAAOAOAOAOOAOAOAOAOAOOAOAOAAOAOAOAOAAOAOAOAOOAOAOAOAOAOAOOAOAAOAOOAOAOA-->
+     <ons-template id="select_animal.html">
+        <ons-page >
+            <ons-toolbar>
+              <div class="left">
+                <ons-back-button>Voltar</ons-back-button>
+            </div>
+            <div class="center">Animais</div>
+            </ons-toolbar>
+            
+            <!--<ul class="list list-top" id="rec">
+            </ul> -->
+        <script type="text/javascript">
+        function pesquisar(nome){
+           // var q = "SELECT * FROM ANIMAIS ORDER BY animal ASC";
+            var q = "SELECT * FROM ANIMAIS WHERE animal LIKE '%"+nome+"%' ORDER BY animal ASC";
+            var db = openDatabase('mydb', '1.0', 'Test DB', 5 * 1024 * 1024);
+         
+            db.transaction(function (t) {
+                
+                t.executeSql(q, null, function (t, data) {
+                    var html = ''; 
+                    
+                    for (var i = 0; i < data.rows.length; i++) {
+                        var stri = data.rows.item(i).animal;
+                          html += '<li class="list__item list__item--tappable list__item__line-height" id="x" onclick="envia(\''+data.rows.item(i).id+'\', \''+stri+'\')">'+
+                                '<span class="list-item-action" ><i class="fa fa-angle-left"></i></span>'+
+                                    "<input type='hidden' id='topcoat' value='"+data.rows.item(i).id+"'>" + 
+                                    "<input type='hidden' id='faz' value='"+data.rows.item(i).animal+"'>" +
+                                    "<span id='faz' style='margin-left: 10%;' class='list-item-action'>"+data.rows.item(i).animal+" </span>"+
+                            "</li>";
+                    }
+                    var el = document.getElementById("rec");
+                    
+                    el.innerHTML = html;
+                    
+                });
+            });
+        }
+            function envia(id, nome){
+                myNavigator.popPage();
+                $('#id_animal').val(id);
+                $('#num_animal').val(nome);
+                
+            }
+        
+          </script>
+          <input type="search" class="search-input" id="pesquisa" style="width: 96%; margin: 6px auto 6px auto;" onKeyUp="pesquisar(this.value);"  maxlength='10' placeholder="Pesquisar id">
+       <div id="rec">
+        
+    </div>
+     <ul id="rec" class="list">
+ 
+    </ul>
+    </ons-page>
+    </ons-template>
+</ons-navigator>
+
